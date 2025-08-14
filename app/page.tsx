@@ -1,103 +1,98 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+
+interface ClassificationResult {
+  category: string;
+  initial_justification: string;
+  refined_justification: string;
+}
+
+export default function HomePage() {
+  const [textToClassify, setTextToClassify] = useState("My internet has been down for three days and your support line just keeps hanging up on me. I want to cancel my service and get a full refund for this month.");
+  const [categories, setCategories] = useState("Billing Issue, Technical Problem, Sales Inquiry, Positive Feedback");
+  const [result, setResult] = useState<ClassificationResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClassify = async () => {
+    setIsLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const response = await fetch("/api/classify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ textToClassify, categories }),
+      });
+      
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "An unknown error occurred.");
+      }
+      setResult(data);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="flex flex-col items-center min-h-screen p-4 sm:p-8 bg-gray-100">
+      <div className="w-full max-w-3xl">
+        <h1 className="text-3xl sm:text-4xl font-bold text-center">Self-Refining Zero-Shot Classifier</h1>
+        <p className="mt-2 text-center text-gray-600">An AI that Classifies, Justifies, and Improves its Own Reasoning.</p>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+        <div className="mt-8 p-6 bg-white rounded-lg shadow-md">
+          <div>
+            <label htmlFor="text-input" className="block text-lg font-medium text-gray-700">Text to Classify:</label>
+            <textarea
+              id="text-input"
+              value={textToClassify}
+              onChange={(e) => setTextToClassify(e.target.value)}
+              className="w-full h-32 mt-2 p-3 font-mono text-sm border rounded-md"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          </div>
+          <div className="mt-4">
+            <label htmlFor="categories-input" className="block text-lg font-medium text-gray-700">Categories (comma-separated):</label>
+            <input
+              id="categories-input"
+              type="text"
+              value={categories}
+              onChange={(e) => setCategories(e.target.value)}
+              className="w-full mt-2 p-3 font-mono text-sm border rounded-md"
+            />
+          </div>
+          <button onClick={handleClassify} disabled={isLoading} className="w-full mt-4 px-4 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400">
+            {isLoading ? "Classifying..." : "Classify and Refine"}
+          </button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        {error && <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">{error}</div>}
+
+        {result && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold text-center mb-4">Classification Result</h2>
+            <div className="p-6 bg-white rounded-lg shadow-md border">
+              <p className="text-lg"><strong>Final Category:</strong> <span className="font-semibold text-blue-700">{result.category}</span></p>
+              
+              <div className="grid md:grid-cols-2 gap-6 mt-4 pt-4 border-t">
+                <div>
+                  <h3 className="font-semibold text-gray-800">Initial Justification:</h3>
+                  <p className="mt-2 p-3 bg-gray-50 rounded-md italic text-gray-700">{result.initial_justification}</p>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-800">Refined Justification:</h3>
+                  <p className="mt-2 p-3 bg-green-50 rounded-md font-medium text-gray-900">{result.refined_justification}</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   );
 }
